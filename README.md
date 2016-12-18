@@ -30,6 +30,15 @@ Options:
     -v,--version  : Show version.
 ```
 
+## Dependencies
+
+This script requires the [`docopt`](https://docopt.org) library.
+It is installable with `pip`:
+
+```
+pip install docopt
+```
+
 ## Installation
 
 Clone this repo and symlink this script somewhere in `$PATH`:
