@@ -17,10 +17,12 @@ import tempfile
 from docopt import docopt
 
 NAME = 'StdinFile'
-VERSION = '0.0.2'
+VERSION = '0.1.0'
 VERSIONSTR = '{} v. {}'.format(NAME, VERSION)
 SCRIPT = os.path.split(os.path.abspath(sys.argv[0]))[1]
 SCRIPTDIR = os.path.abspath(sys.path[0])
+
+DEFAULT_TMP_DIR = tempfile.gettempdir()
 
 USAGESTR = """{versionstr}
 
@@ -28,34 +30,47 @@ USAGESTR = """{versionstr}
 
     Usage:
         {script} [-h | -v]
+        {script} [-d dir]
 
     Options:
-        -h,--help     : Show this help message.
-        -v,--version  : Show version.
-""".format(script=SCRIPT, versionstr=VERSIONSTR)
+        -d dir,--dir dir  : Temporary directory to use.
+                            Default: {default_tmp_dir}
+        -h,--help         : Show this help message.
+        -v,--version      : Show version.
+""".format(
+    default_tmp_dir=DEFAULT_TMP_DIR,
+    script=SCRIPT,
+    versionstr=VERSIONSTR
+)
 
 
 def main(argd):
     """ Main entry point, expects doctopt arg dict as argd. """
+    tempdir = argd['--dir'] or DEFAULT_TMP_DIR
+    if not os.path.isdir(tempdir):
+        raise InvalidArg('Invalid temp. directory: {}'.format(tempdir))
+
     try:
         data = sys.stdin.buffer.read()
     except EnvironmentError as exr:
         print_err('Unable to read stdin: {}'.format(exr))
         return 1
     else:
-        fname = write_temp_file(data)
+        fname = write_temp_file(data, tempdir=tempdir)
         if fname:
             sys.stdout.write(fname)
             return 0
     return 1
 
 
-def print_err(s):
-    """ Print a line of text to stderr. """
-    sys.stderr.write(''.join((s, '\n')))
+def print_err(*args, **kwargs):
+    """ A wrapper for print() that uses stderr by default. """
+    if kwargs.get('file', None) is None:
+        kwargs['file'] = sys.stderr
+    print(*args, **kwargs)
 
 
-def write_temp_file(rawbytes):
+def write_temp_file(rawbytes, tempdir=None):
     """ Create a temp file, write rawbytes to it, and close it.
         Return the file name that was written, or None on failure.
         Errors are printed to stderr.
@@ -64,7 +79,7 @@ def write_temp_file(rawbytes):
         fd, fname = tempfile.mkstemp(
             suffix='.tmp',
             prefix='stdinfile.',
-            dir=tempfile.gettempdir()
+            dir=tempdir or DEFAULT_TMP_DIR,
         )
     except EnvironmentError as ex:
         print_err('Unable to create a temp file: {}'.format(ex))
@@ -81,6 +96,27 @@ def write_temp_file(rawbytes):
     return fname
 
 
+class InvalidArg(ValueError):
+    """ Raised when the user has used an invalid argument. """
+    def __init__(self, msg=None):
+        self.msg = msg or ''
+
+    def __str__(self):
+        if self.msg:
+            return 'Invalid argument, {}'.format(self.msg)
+        return 'Invalid argument!'
+
+
 if __name__ == '__main__':
-    mainret = main(docopt(USAGESTR, version=VERSIONSTR))
+    try:
+        mainret = main(docopt(USAGESTR, version=VERSIONSTR))
+    except InvalidArg as ex:
+        print_err(ex)
+        mainret = 1
+    except (EOFError, KeyboardInterrupt):
+        print_err('\nUser cancelled.\n')
+        mainret = 2
+    except BrokenPipeError:
+        print_err('\nBroken pipe, input/output was interrupted.\n')
+        mainret = 3
     sys.exit(mainret)

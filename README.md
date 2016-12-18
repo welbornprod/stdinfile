@@ -4,15 +4,20 @@ Reads stdin data, creates a temporary file that can be used by programs
 that accept file arguments but not stdin. This program simply prints the
 resulting temporary file's path, so that it can be used as an argument.
 
-## Example
+## Examples
+
+Highlight stdinfile's source with `pygments`, and view in `google-chrome`.
 ```bash
-# Highlight stdinfile's source with pygments, and view in Chrome.
 pygments -l python -f html -O full stdinfile.py | google-chrome "$(stdinfile)"
+```
 
-# Compare the difference between shfmt's output and the original using meld.
+Compare the difference between shfmt's output and the original script using `meld`.
+```bash
 shfmt myscript.sh | meld "$(stdinfile)" myscript.sh
+```
 
-# Save a temporary file's path, for use later.
+Save command output to a temporary file, for use later.
+```bash
 myfile="$(ls | stdinfile)"
 echo "$myfile"
 # Output: /tmp/stdinfile.kawk3fe1.tmp
@@ -24,10 +29,13 @@ cat "$myfile"
 ```
 Usage:
     stdinfile [-h | -v]
+    stdinfile [-d dir]
 
 Options:
-    -h,--help     : Show this help message.
-    -v,--version  : Show version.
+    -d dir,--dir dir  : Temporary directory to use.
+                        Default: /tmp
+    -h,--help         : Show this help message.
+    -v,--version      : Show version.
 ```
 
 ## Dependencies
