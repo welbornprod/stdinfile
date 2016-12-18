@@ -32,7 +32,7 @@ Options:
 
 ## Dependencies
 
-This script requires the [`docopt`](https://docopt.org) library.
+This script requires the [`docopt`](http://docopt.org) library.
 It is installable with `pip`:
 
 ```
