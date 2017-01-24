@@ -17,12 +17,13 @@ import tempfile
 from docopt import docopt
 
 NAME = 'StdinFile'
-VERSION = '0.1.0'
+VERSION = '0.2.0'
 VERSIONSTR = '{} v. {}'.format(NAME, VERSION)
 SCRIPT = os.path.split(os.path.abspath(sys.argv[0]))[1]
 SCRIPTDIR = os.path.abspath(sys.path[0])
 
 DEFAULT_TMP_DIR = tempfile.gettempdir()
+DEFAULT_TMP_EXT = '.tmp'
 
 USAGESTR = """{versionstr}
 
@@ -30,17 +31,20 @@ USAGESTR = """{versionstr}
 
     Usage:
         {script} [-h | -v]
-        {script} [-d dir]
+        {script} [-d dir] [-e ext]
 
     Options:
-        -d dir,--dir dir  : Temporary directory to use.
-                            Default: {default_tmp_dir}
-        -h,--help         : Show this help message.
-        -v,--version      : Show version.
+        -d dir,--dir dir        : Temporary directory to use.
+                                  Default: {default_tmp_dir}
+        -e ext,--extension ext  : Extension for temporary file.
+                                  Default: {default_extension}
+        -h,--help               : Show this help message.
+        -v,--version            : Show version.
 """.format(
+    default_extension=DEFAULT_TMP_EXT,
     default_tmp_dir=DEFAULT_TMP_DIR,
     script=SCRIPT,
-    versionstr=VERSIONSTR
+    versionstr=VERSIONSTR,
 )
 
 
@@ -56,7 +60,11 @@ def main(argd):
         print_err('Unable to read stdin: {}'.format(exr))
         return 1
     else:
-        fname = write_temp_file(data, tempdir=tempdir)
+        fname = write_temp_file(
+            data,
+            tempdir=tempdir,
+            extension=argd['--extension']
+        )
         if fname:
             sys.stdout.write(fname)
             return 0
@@ -70,14 +78,14 @@ def print_err(*args, **kwargs):
     print(*args, **kwargs)
 
 
-def write_temp_file(rawbytes, tempdir=None):
+def write_temp_file(rawbytes, tempdir=None, extension=None):
     """ Create a temp file, write rawbytes to it, and close it.
         Return the file name that was written, or None on failure.
         Errors are printed to stderr.
     """
     try:
         fd, fname = tempfile.mkstemp(
-            suffix='.tmp',
+            suffix=extension or DEFAULT_TMP_EXT,
             prefix='stdinfile.',
             dir=tempdir or DEFAULT_TMP_DIR,
         )

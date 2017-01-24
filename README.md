@@ -29,13 +29,15 @@ cat "$myfile"
 ```
 Usage:
     stdinfile [-h | -v]
-    stdinfile [-d dir]
+    stdinfile [-d dir] [-e ext]
 
 Options:
-    -d dir,--dir dir  : Temporary directory to use.
-                        Default: /tmp
-    -h,--help         : Show this help message.
-    -v,--version      : Show version.
+    -d dir,--dir dir        : Temporary directory to use.
+                              Default: /tmp
+    -e ext,--extension ext  : Extension for temporary file.
+                              Default: .tmp
+    -h,--help               : Show this help message.
+    -v,--version            : Show version.
 ```
 
 ## Dependencies
