@@ -49,7 +49,7 @@ USAGESTR = """{versionstr}
 
 
 def main(argd):
-    """ Main entry point, expects doctopt arg dict as argd. """
+    """ Main entry point, expects docopt arg dict as argd. """
     tempdir = argd['--dir'] or DEFAULT_TMP_DIR
     if not os.path.isdir(tempdir):
         raise InvalidArg('Invalid temp. directory: {}'.format(tempdir))
